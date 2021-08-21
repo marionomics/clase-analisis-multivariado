@@ -1,0 +1,100 @@
+---
+title: "Titanic"
+author: "Mario A. Garcia-Meza"
+date: "13/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Mostrar la base de datos
+```{r load-data, echo=FALSE}
+titanic <- read.csv("../data/train.csv")
+```
+Para mostrar la base de datos usamos
+```{r cargar-base}
+str(titanic)
+```
+
+
+## Supervivencia por clase
+
+```{r tablita}
+table(titanic$Survived, titanic$Pclass)
+```
+
+Ahora haremos una gráfica de barras. Para esto haremos uso de `ggplot2` y `dplyr`. Estas dos librerías vienen en el `tidyverse`.
+```{r grafico-de-barras}
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+
+table(titanic$Survived, titanic$Pclass) %>%
+  melt() %>% as.data.frame() %>%
+  ggplot(aes(x = Var2, y = value, fill = factor(Var1)))+
+  geom_bar(stat = "identity", position = "dodge")+
+  geom_text(aes(label = value), stat = "identity", 
+            position = position_dodge(width = 0.9))+
+  labs(x = "Clase", y = "Personas", fill = "Supervivencia")+
+  scale_fill_discrete(labels = c("No sobrevive", "Sobrevive"))
+```
+
+
+### Correlación entre las variables
+Vamos a utilizar la función `cor()`.
+```{r correlaciones}
+cor(titanic$Survived, titanic$Pclass)
+```
+
+## ¿Que hacer si tenemos datos faltantes?
+
+```{r datos-faltantes}
+#sum(is.na(titanic$Pclass))
+
+sapply(titanic, function(x){sum(is.na(x))})
+```
+
+### Tarifas
+
+```{r densidad}
+ggplot(titanic, aes(x = Fare))+
+  geom_density()
+```
+Veamos cuánto cuesta en promedio un boleto por clase
+
+```{r boleto-por-clase}
+ggplot(titanic,
+       aes(y = Fare, x = factor(Pclass), 
+           fill = factor(Pclass)))+
+  geom_violin()
+```
+
+### Edades de los pasajeros
+Tenemos 177 datos faltantes de edad.
+```{r edad-vs-supervivencia}
+table(`Tiene Edad` = ifelse(is.na(titanic$Age),0,1), Survived = titanic$Survived) %>%
+  melt() %>%
+  ggplot(aes(x = `Tiene Edad`, y = value, 
+             fill = factor(Survived)))+
+  geom_bar(stat = "identity", position = "dodge")
+```
+
+```{r edad-supervivencia2}
+ggplot(titanic,
+       aes(Age))+
+  geom_histogram(bins = 80)
+summary(titanic$Age)
+```
+
+```{r supervivencia-por-grupos-de-edad}
+titanic %>%
+  mutate(grupo_de_edad = ifelse(Age < 20, "Peques",
+                                ifelse(Age < 40, "Chavos", "Adultos"))) %>%
+  group_by(grupo_de_edad, Sex) %>%
+  summarize(supervivencia = mean(Survived)) %>%
+  ggplot(aes(x = grupo_de_edad, y = supervivencia, fill = Sex))+
+  geom_bar(stat = "identity", position = "dodge")
+```
+

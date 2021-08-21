@@ -1,0 +1,31 @@
+---
+title: "Iris"
+author: "Mario A. Garcia-Meza"
+date: "13/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+La base de datos de iris
+```{r show-iris}
+str(iris)
+```
+Vamos a hacer unas gráficas de dispersión
+
+```{r dispersion}
+pairs(iris[,-c(5)])
+```
+
+Veamos en ggplot
+
+```{r ggplot-dispersion}
+iris %>%
+  ggplot(aes(x = Petal.Length, 
+             y = Petal.Width,
+             color = Species))+
+  geom_point()
+```
+
